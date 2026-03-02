@@ -19,9 +19,5 @@ class ColorsApp {
   static final Color orangeColor=Color(0xffFB923C);
   static final Color brownColor=Color(0xff4A3834);
   static final Color redColor=Color(0xff991B1B);
-<<<<<<< HEAD
-  static final Color red=Color(0x00ff00);
-=======
-  static final Color red=Color(0xff);
->>>>>>> origin/test
+  static final Color lightgreyColor=Colors.grey;
 }
