@@ -12,7 +12,7 @@ Widget buildTaskItem({
   }) {
     return Container(
       width: 260, 
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: ColorsApp.greyColor.withOpacity(0.15), 
         borderRadius: BorderRadius.circular(15),
@@ -49,7 +49,7 @@ Widget buildTaskItem({
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white10,
+              backgroundColor: ColorsApp.darkGreyColor,
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
               minHeight: 4,
             ),
