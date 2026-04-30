@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// استدعاء ملف الألوان الخاص بالمشروع بناءً على هيكل الفولدرات
 import '../core/constants/colors_app.dart';
+import 'forget_pass.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // التدرج اللوني من كلاس ColorsApp الخاص بالمشروع
+      resizeToAvoidBottomInset: false,
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -27,10 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              ColorsApp.darknavyblueColor, // من ملف ألوان المشروع
-              ColorsApp.blackColor, // من ملف ألوان المشروع
+              ColorsApp.darknavyblueColor,
+              ColorsApp.darknavyblueColor.withOpacity(1),
+              ColorsApp.midnightBlueColor,
             ],
-            stops: const [0.0, 0.5],
+            stops: const [0.0, 0.4, 1.0],
           ),
         ),
         child: SafeArea(
@@ -43,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 60),
 
-                    // --- الجزء العلوي (أيقونة الشخص) ---
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Icon(
                         Icons.person_outline,
-                        color: ColorsApp.blueColor, // أزرق المشروع
+                        color: ColorsApp.blueColor,
                         size: 40,
                       ),
                     ),
@@ -70,14 +70,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       "Log in to keep everything running smoothly and deliver great care.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: ColorsApp.greyColor, // رمادي المشروع
+                        color: ColorsApp.greyColor,
                         fontSize: 15,
                       ),
                     ),
 
                     const SizedBox(height: 60),
 
-                    // --- حقل الإيميل ---
+                    // Email Field
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -108,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 25),
 
-                    // --- حقل الباسورد ---
+                    // Password Field
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -146,13 +146,45 @@ class _LoginScreenState extends State<LoginScreen> {
                               value!.isEmpty ? "Password is required" : null,
                     ),
 
-                    const SizedBox(height: 40),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Transform.translate(
+                        offset: const Offset(
+                          0,
+                          -1,
+                        ), 
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => const ForgetPasswordScreen(),
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(50, 30),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            "Forget password",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
 
-                    // --- زرار الدخول (Sign in) ---
+                    const SizedBox(height: 17),
+
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            ColorsApp.greyColor, // لون الزرار من المشروع
+                        backgroundColor: ColorsApp.greyColor,
                         minimumSize: const Size(double.infinity, 60),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -174,8 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    // باقي الصفحة هيفضل واخد لون الخلفية المدرج
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 200),
                   ],
                 ),
               ),
