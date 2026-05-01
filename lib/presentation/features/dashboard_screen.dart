@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:graduation_app/core/constants/colors_app.dart';
-// import 'package:graduation_app/models/task_card_model.dart';
+import 'package:graduation_app/models/task_card_model.dart';
 import 'package:graduation_app/widgets/item_card.dart';
 import 'package:graduation_app/widgets/main_layout.dart';
 import 'package:graduation_app/widgets/task_item.dart';
@@ -316,21 +316,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ), //My Tasks screen
-                          
                         ],
                       ),
                       // SizedBox(height: 5,),
                       SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                buildTaskItem(title: 'Prototyping', status: 'HIGH', statusColor: ColorsApp.orangeColor, desc: 'Create wireframes for mobile app dashboard redesign.', days: '2 days left', progress: 0.8, progressColor: ColorsApp.blueColor),
-                                SizedBox(width: 10,),
-                                buildTaskItem(title: 'Asset Export', status: 'Normal', statusColor: ColorsApp.greenColor, desc: 'Prepare assets for development handoff meeting.', days: '5 days left', progress: 0.3, progressColor: ColorsApp.purpleColor)
-                              ],
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            buildTaskItem(
+                              title: 'Prototyping',
+                              status: 'HIGH',
+                              statusColor: ColorsApp.orangeColor,
+                              desc:
+                                  'Create wireframes for mobile app dashboard redesign.',
+                              days: '2 days left',
+                              progress: 0.8,
+                              progressColor: ColorsApp.blueColor,
                             ),
-                          )
+                            SizedBox(width: 10),
+                            buildTaskItem(
+                              title: 'Asset Export',
+                              status: 'Normal',
+                              statusColor: ColorsApp.greenColor,
+                              desc:
+                                  'Prepare assets for development handoff meeting.',
+                              days: '5 days left',
+                              progress: 0.3,
+                              progressColor: ColorsApp.purpleColor,
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
