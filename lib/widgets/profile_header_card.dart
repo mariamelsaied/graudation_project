@@ -21,7 +21,7 @@ class ProfileHeaderCard extends StatelessWidget {
             margin: EdgeInsets.symmetric(horizontal: 16),
             padding: EdgeInsets.symmetric(vertical: 24),
             decoration: BoxDecoration(
-              color: ColorsApp.secondaryblueColor.withOpacity(0.3),
+              color: ColorsApp.secondaryBlueColor.withOpacity(0.3),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: ColorsApp.borderGrey.withOpacity(0.5),

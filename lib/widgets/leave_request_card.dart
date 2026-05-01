@@ -23,7 +23,7 @@ class LeaveRequestCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorsApp.secondaryblueColor,
+        color: ColorsApp.secondaryBlueColor,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(

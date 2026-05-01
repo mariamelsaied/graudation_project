@@ -19,7 +19,7 @@ class LeaveBalanceCard extends StatelessWidget {
       width: 160,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorsApp.secondaryblueColor,
+        color: ColorsApp.secondaryBlueColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

@@ -36,7 +36,7 @@ class _PersonalInfoCardState extends State<PersonalInfoCard> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorsApp.secondaryblueColor, 
+        color: ColorsApp.secondaryBlueColor, 
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: ColorsApp.borderGrey.withOpacity(0.5),

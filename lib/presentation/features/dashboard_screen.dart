@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:graduation_app/core/constants/colors_app.dart';
-import 'package:graduation_app/models/task_card_model.dart';
 import 'package:graduation_app/widgets/item_card.dart';
 import 'package:graduation_app/widgets/main_layout.dart';
+import 'package:graduation_app/widgets/request_item.dart';
 import 'package:graduation_app/widgets/task_item.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -16,66 +16,164 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final List<double> weeklyHours = [8, 7.5, 9, 8.5, 7];
-  // final TaskCardModel task;
 
   DateTime? rangeStart;
-
   DateTime? rangeEnd;
-
   DateTime focusedDay = DateTime.now();
 
-  // dummy data
-  //   final List<TaskCardModel> tasks = [
-  //   TaskCardModel(
-  //     title: "Prototyping",
-  //     description: "Create wireframes for mobile app dashboard redesign.",
-  //     status: "HIGH",
-  //     progress: 0.9,
-  //     daysLeft: "2 days left",
-  //   ),
-  //   TaskCardModel(
-  //     title: "Asset Export",
-  //     description: "Prepare assets for development handoff meeting.",
-  //     status: "NORMAL",
-  //     progress: 0.5,
-  //     daysLeft: "5 days left",
-  //   ),
-  // ];
+  String formatMonthYear(DateTime date) {
+    List<String> months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return "${months[date.month - 1]} ${date.year}";
+  }
 
   void showCalendar() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: ColorsApp.calenderColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateModal) {
             return Padding(
-              padding: EdgeInsets.all(16),
-              child: TableCalendar(
-                firstDay: DateTime(2020),
-                lastDay: DateTime(2030),
-                focusedDay: focusedDay,
-                rangeStartDay: rangeStart,
-                rangeEndDay: rangeEnd,
-                calendarFormat: CalendarFormat.month,
-                rangeSelectionMode: RangeSelectionMode.toggledOn,
-                onRangeSelected: (start, end, focused) {
-                  setState(() {
-                    rangeStart = start;
-                    rangeEnd = end;
-                    focusedDay = focused;
-                  });
-                  setStateModal(() {});
-                },
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                top: 20,
+                left: 16,
+                right: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ColorsApp.WhiteColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    "Select Range",
+                    style: TextStyle(
+                      color: ColorsApp.WhiteColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: TableCalendar(
+                        firstDay: DateTime(2020),
+                        lastDay: DateTime(2030),
+                        focusedDay: focusedDay,
+                        rangeStartDay: rangeStart,
+                        rangeEndDay: rangeEnd,
+                        calendarFormat: CalendarFormat.month,
+                        rangeSelectionMode: RangeSelectionMode.toggledOn,
+                        rowHeight: 45,
+                        daysOfWeekHeight: 30,
+                        calendarStyle: CalendarStyle(
+                          weekendTextStyle: TextStyle(
+                            color: ColorsApp.WhiteColor,
+                            fontSize: 14,
+                          ),
+                          defaultTextStyle: TextStyle(
+                            color: ColorsApp.WhiteColor,
+                            fontSize: 14,
+                          ),
+                          rangeHighlightColor: ColorsApp.blueColor.withOpacity(
+                            0.2,
+                          ),
+                          rangeStartDecoration: BoxDecoration(
+                            color: ColorsApp.blueColor,
+                            shape: BoxShape.circle,
+                          ),
+                          rangeEndDecoration: BoxDecoration(
+                            color: ColorsApp.blueColor,
+                            shape: BoxShape.circle,
+                          ),
+                          withinRangeTextStyle: TextStyle(
+                            color: ColorsApp.WhiteColor,
+                          ),
+                          outsideTextStyle: TextStyle(
+                            color: ColorsApp.WhiteColor,
+                          ),
+                          outsideDaysVisible: false,
+                        ),
+
+                        headerStyle: HeaderStyle(
+                          titleCentered: true,
+                          titleTextStyle: TextStyle(
+                            color: ColorsApp.WhiteColor,
+                            fontSize: 16,
+                          ),
+                          formatButtonVisible: false,
+                          leftChevronIcon: Icon(
+                            Icons.chevron_left,
+                            color: ColorsApp.WhiteColor,
+                          ),
+                          rightChevronIcon: Icon(
+                            Icons.chevron_right,
+                            color: ColorsApp.WhiteColor,
+                          ),
+                        ),
+
+                        onRangeSelected: (start, end, focused) {
+                          setState(() {
+                            rangeStart = start;
+                            rangeEnd = end;
+                            focusedDay = focused;
+                          });
+                          setStateModal(() {});
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorsApp.blueColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        "Confirm Selection",
+                        style: TextStyle(color: ColorsApp.WhiteColor),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           },
         );
       },
     );
-  }
-
-  String format(DateTime date) {
-    return "${date.month}/${date.year}";
   }
 
   @override
@@ -119,10 +217,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         SizedBox(width: 6),
                         Text(
                           rangeStart == null
-                              ? "Select Date"
+                              ? "Select Date Range"
                               : rangeEnd == null
-                              ? format(rangeStart!)
-                              : "${format(rangeStart!)} - ${format(rangeEnd!)}",
+                              ? formatMonthYear(rangeStart!)
+                              : "${formatMonthYear(rangeStart!)} - ${formatMonthYear(rangeEnd!)}",
                           style: TextStyle(color: ColorsApp.WhiteColor),
                         ),
                       ],
@@ -153,7 +251,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           "12 Days",
                           "Annual Leave Quota",
                           ColorsApp.purpleColor,
-                          Image.asset('assets/images/umberella.png'),
+                          Image.asset("assets/images/umberella.png"),
                         ),
                         itemCard(
                           "Active Tasks",
@@ -203,7 +301,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       SizedBox(
                         height: 220,
                         child: Padding(
-                          padding: const EdgeInsets.all(8),
+                          padding: EdgeInsets.all(8),
                           child: BarChart(
                             BarChartData(
                               maxY: 10,
@@ -278,8 +376,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                       ),
-
-                      // SizedBox(height: 25,),
                     ],
                   ),
                 ),
@@ -318,7 +414,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ), //My Tasks screen
                         ],
                       ),
-                      // SizedBox(height: 5,),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -347,6 +442,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 25),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: ColorsApp.darknavyblueColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Recent Requests",
+                            style: TextStyle(
+                              color: ColorsApp.WhiteColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              "View All",
+                              style: TextStyle(
+                                color: ColorsApp.blueColor,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      RequestItem(
+                        bgColor: ColorsApp.orangeColor,
+                        statusColor: ColorsApp.yellowColor,
+                        status: "Pending",
+                        date: "Oct 24, 2025",
+                        title: "Sick Leave",
+                        image: Image.asset("assets/images/sick.png"),
+                      ),
+                      SizedBox(height: 16),
+                      RequestItem(
+                        bgColor: ColorsApp.blueColor,
+                        statusColor: ColorsApp.greenColor,
+                        status: 'Approved',
+                        date: 'Oct 20, 2025',
+                        title: 'Wi-Fi Request',
+                        image: Image.asset("assets/images/Icon.png"),
+                      ),
+                      SizedBox(height: 16),
+                      RequestItem(
+                        bgColor: ColorsApp.purpleColor,
+                        statusColor: ColorsApp.redColor,
+                        status: 'Rejected',
+                        date: 'Oct 15, 2025',
+                        title: 'New Equipment',
+                        image: Image.asset("assets/images/equipment2.png"),
                       ),
                     ],
                   ),

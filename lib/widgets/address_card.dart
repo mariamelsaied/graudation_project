@@ -23,7 +23,7 @@ class _AddressCardState extends State<AddressCard> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorsApp.secondaryblueColor,
+        color: ColorsApp.secondaryBlueColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: ColorsApp.borderGrey.withOpacity(0.5),
