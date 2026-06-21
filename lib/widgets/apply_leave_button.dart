@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:graduation_app/presentation/features/new_leave_application_screen.dart.dart';
 import '../core/constants/colors_app.dart';
 
 class ApplyLeaveButton extends StatelessWidget {
@@ -18,7 +19,12 @@ class ApplyLeaveButton extends StatelessWidget {
           elevation: 5,
         ),
         onPressed: () {
-          Navigator.pushNamed(context, '');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NewLeaveApplicationScreen(),
+            ),
+          );
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

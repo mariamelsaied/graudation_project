@@ -49,7 +49,6 @@ class LeaveRequestCard extends StatelessWidget {
                   ),
                 ],
               ),
-              // الـ Badge بتاع الحالة
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,

@@ -1,11 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graduation_app/core/constants/colors_app.dart';
+import 'package:graduation_app/core/constants/strings.dart';
+import 'package:graduation_app/cubit/auth_cubit.dart';
+import 'package:graduation_app/cubit/auth_state.dart';
+import 'package:graduation_app/cubit/dashboard_cubit.dart'; 
+import 'package:graduation_app/cubit/dashboard_states.dart';
 import 'package:graduation_app/widgets/item_card.dart';
-import 'package:graduation_app/widgets/main_layout.dart';
 import 'package:graduation_app/widgets/request_item.dart';
-import 'package:graduation_app/widgets/task_item.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:graduation_app/widgets/side_menu.dart';
+import 'package:graduation_app/widgets/task_item.dart'; 
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,506 +20,602 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final List<double> weeklyHours = [8, 7.5, 9, 8.5, 7];
-
   DateTime? rangeStart;
   DateTime? rangeEnd;
   DateTime focusedDay = DateTime.now();
 
-  String formatMonthYear(DateTime date) {
-    List<String> months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return "${months[date.month - 1]} ${date.year}";
+  @override
+  void initState() {
+    super.initState();
+    context.read<DashboardCubit>().getDashboardStats();
+    context.read<DashboardCubit>().getWeeklyAttendanceStats();
+    context.read<DashboardCubit>().getMyProjects(); 
+    context.read<DashboardCubit>().getRecentRequests(); 
   }
 
-  void showCalendar() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: ColorsApp.calenderColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+
+  String getRemainingDays(DateTime? deadline) {
+    if (deadline == null) return 'No deadline';
+    final now = DateTime.now();
+    final difference = deadline.difference(DateTime(now.year, now.month, now.day)).inDays;
+    
+    if (difference < 0) {
+      return 'Overdue';
+    } else if (difference == 0) {
+      return 'Today';
+    } else {
+      return '$difference days left';
+    }
+  }
+
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+      case 'accept':
+        return ColorsApp.greenColor;
+      case 'rejected':
+      case 'reject':
+        return ColorsApp.redColor;
+      case 'pending':
+      default:
+        return ColorsApp.yellowColor;
+    }
+  }
+
+  String getRequestImage(String title) {
+    final t = title.toLowerCase();
+    if (t.contains('payroll')) {
+      return "assets/images/Container.png";
+    } else if (t.contains('it') || t.contains('complaint')) {
+      return "assets/images/Icon.png";
+    } else {
+      return "assets/images/equipment2.png";
+    }
+  }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      drawer: const SideMenu(currentPage: "Dashboard"),
+      appBar: AppBar(
+        backgroundColor: ColorsApp.darknavyblueColor,
+        elevation: 0,
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: ColorsApp.WhiteColor),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: Text(
+          "Dashboard",
+          style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.notifications_none, color: ColorsApp.WhiteColor),
+            onPressed: () {},
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: BlocBuilder<LoginCubit, AuthState>(
+              builder: (context, state) {
+                String? avatarUrl;
+                if (state is AuthSuccess) {
+                  avatarUrl = state.loginResponse.data?.user?.general?.avatar;
+                }
+
+                return CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey[800],
+                  backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                      ? NetworkImage(avatarUrl)
+                      : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
+                );
+              },
+            ),
+          ),
+        ],
       ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateModal) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                top: 20,
-                left: 16,
-                right: 16,
-              ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [ColorsApp.darknavyblueColor, ColorsApp.midnightBlueColor],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text("Hello!", style: TextStyle(color: ColorsApp.greyColor)),
+                  BlocBuilder<LoginCubit, AuthState>(
+                builder: (context, state) {
+                  String userName = "Employee";
+                  if (state is AuthSuccess) {
+                    userName = state.loginResponse.data?.user?.general?.firstName ?? "Employee";
+                  }
+
+                  return Text(
+                    userName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                },
+              ),
+                  const SizedBox(height: 10),
+                  BlocBuilder<DashboardCubit, DashboardStates>(
+                    buildWhen: (previous, current) => 
+                        current is DashboardLoadingState || 
+                        current is DashboardSuccessState || 
+                        current is DashboardErrorState,
+                    builder: (context, state) {
+                      if (state is DashboardLoadingState) {
+                        return const SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      } else if (state is DashboardErrorState) {
+                        return Center(
+                          child: Text(
+                            state.errorMessage,
+                            style: TextStyle(color: ColorsApp.redColor, fontSize: 14),
+                          ),
+                        );
+                      } else if (state is DashboardSuccessState) {
+                        final dashboardData = state.statsModel.data;
+      
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
+                            double aspectRatio = constraints.maxWidth < 360 ? 1.1 : 1.2;
+      
+                            return GridView.count(
+                              shrinkWrap: true,
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 6,
+                              mainAxisSpacing: 6,
+                              childAspectRatio: aspectRatio,
+                              physics: const NeverScrollableScrollPhysics(),
+                              children: [
+                                itemCard(
+                                  "Today's Status",
+                                  dashboardData?.todayStatus?.status ?? "Absent",
+                                  dashboardData?.todayStatus?.checkIn ?? "Not Checked In",
+                                  ColorsApp.blueColor,
+                                  Image.asset('assets/images/time.png', fit: BoxFit.contain),
+                                ),
+                                itemCard(
+                                  "Leave Balance",
+                                  "${dashboardData?.leaveBalance ?? 0} Days",
+                                  "Annual Leave Quota",
+                                  ColorsApp.purpleColor,
+                                  Image.asset("assets/images/umberella.png", fit: BoxFit.contain),
+                                ),
+                                itemCard(
+                                  "Active Tasks",
+                                  dashboardData?.activeTasks?.count?.toString().padLeft(2, '0') ?? "00",
+                                  "High Priority: ${dashboardData?.activeTasks?.highPriorityCount ?? 0}",
+                                  ColorsApp.orangeColor,
+                                  Image.asset('assets/images/report.png', fit: BoxFit.contain),
+                                ),
+                                itemCard(
+                                  "Pending Requests",
+                                  dashboardData?.pendingRequests?.toString().padLeft(2, '0') ?? "00",
+                                  "Waiting approval",
+                                  ColorsApp.pinkColor,
+                                  Image.asset('assets/images/request.png', fit: BoxFit.contain),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                  const SizedBox(height: 20),
                   Container(
-                    width: 40,
-                    height: 4,
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: ColorsApp.WhiteColor,
-                      borderRadius: BorderRadius.circular(10),
+                      color: ColorsApp.darknavyblueColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: ColorsApp.greyColor.withOpacity(0.1)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Weekly Attendance',
+                                  style: TextStyle(
+                                    color: ColorsApp.WhiteColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  "On Time vs Late Overview",
+                                  style: TextStyle(color: ColorsApp.greyColor, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Container(
+                              width: 12, height: 12,
+                              decoration: BoxDecoration(color: ColorsApp.blueColor, borderRadius: BorderRadius.circular(3)),
+                            ),
+                            const SizedBox(width: 6),
+                            Text("On Time", style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 12)),
+                            const SizedBox(width: 16),
+                            Container(
+                              width: 12, height: 12,
+                              decoration: BoxDecoration(color: ColorsApp.purpleColor, borderRadius: BorderRadius.circular(3)),
+                            ),
+                            const SizedBox(width: 6),
+                            Text("Late", style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 12)),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+      
+                        SizedBox(
+                          height: 200,
+                          child: BlocBuilder<DashboardCubit, DashboardStates>(
+                            buildWhen: (previous, current) =>
+                                current is WeeklyStatsLoadingState ||
+                                current is WeeklyStatsSuccessState ||
+                                current is WeeklyStatsErrorState,
+                            builder: (context, state) {
+                              if (state is WeeklyStatsLoadingState) {
+                                  return const Center(child: CircularProgressIndicator());
+                              } else if (state is WeeklyStatsErrorState) {
+                                return Center(
+                                  child: Text(
+                                    state.errorMessage,
+                                    style: TextStyle(color: ColorsApp.redColor, fontSize: 12),
+                                  ),
+                                );
+                              }
+      
+                              final cubit = context.read<DashboardCubit>();
+                              final chartList = cubit.weeklyAttendanceList;
+      
+                              if (chartList.isEmpty) {
+                                return Center(
+                                  child: Text(
+                                    "No attendance data available",
+                                    style: TextStyle(color: ColorsApp.greyColor),
+                                  ),
+                                );
+                              }
+      
+                              double calculatedMaxY = chartList
+                                  .map((e) => (e.onTimeCount ?? 0) + (e.lateCount ?? 0))
+                                  .reduce((a, b) => a > b ? a : b)
+                                  .toDouble();
+      
+                              return BarChart(
+                                BarChartData(
+                                  maxY: calculatedMaxY == 0 ? 5 : calculatedMaxY + 1,
+                                  gridData: const FlGridData(show: false),
+                                  borderData: FlBorderData(show: false),
+                                  barTouchData: BarTouchData(
+                                    enabled: true,
+                                    touchTooltipData: BarTouchTooltipData(
+                                      getTooltipColor: (group) => ColorsApp.darknavyblueColor,
+                                      tooltipBorder: BorderSide(color: ColorsApp.greyColor.withOpacity(0.3)),
+                                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                        final item = chartList[group.x.toInt()];
+                                        return BarTooltipItem(
+                                          "${item.dayName}\nOn Time: ${item.onTimeCount}\nLate: ${item.lateCount}",
+                                          const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  titlesData: FlTitlesData(
+                                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                    leftTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 22,
+                                        interval: 1, // يضمن عدم تكرار الأرقام بشكل عشوائي
+                                        getTitlesWidget: (value, meta) => Text(
+                                          '${value.toInt()}',
+                                          style: TextStyle(color: ColorsApp.greyColor, fontSize: 11),
+                                        ),
+                                      ),
+                                    ),
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        getTitlesWidget: (value, meta) {
+                                          int index = value.toInt();
+                                          if (index >= 0 && index < chartList.length) {
+                                            String dayName = chartList[index].dayName ?? '';
+                                            return Padding(
+                                              padding: const EdgeInsets.only(top: 8),
+                                              child: Text(
+                                                dayName.length > 3 ? dayName.substring(0, 3) : dayName,
+                                                style: TextStyle(color: ColorsApp.greyColor, fontSize: 11, fontWeight: FontWeight.w500),
+                                              ),
+                                            );
+                                          }
+                                          return const Text('');
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  barGroups: List.generate(
+                                    chartList.length,
+                                    (index) {
+                                      final item = chartList[index];
+                                      double onTime = (item.onTimeCount ?? 0).toDouble();
+                                      double late = (item.lateCount ?? 0).toDouble();
+      
+                                      return BarChartGroupData(
+                                        x: index,
+                                        barRods: [
+                                          BarChartRodData(
+                                            toY: onTime + late,
+                                            width: 14,
+                                            color: ColorsApp.blueColor,
+                                            borderRadius: BorderRadius.circular(6), // حواف دائرية ناعمة وشيك للعمود
+                                            rodStackItems: [
+                                              BarChartRodStackItem(0, onTime, ColorsApp.blueColor),
+                                              BarChartRodStackItem(onTime, onTime + late, ColorsApp.purpleColor),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  Text(
-                    "Select Range",
-                    style: TextStyle(
-                      color: ColorsApp.WhiteColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: TableCalendar(
-                        firstDay: DateTime(2020),
-                        lastDay: DateTime(2030),
-                        focusedDay: focusedDay,
-                        rangeStartDay: rangeStart,
-                        rangeEndDay: rangeEnd,
-                        calendarFormat: CalendarFormat.month,
-                        rangeSelectionMode: RangeSelectionMode.toggledOn,
-                        rowHeight: 45,
-                        daysOfWeekHeight: 30,
-                        calendarStyle: CalendarStyle(
-                          weekendTextStyle: TextStyle(
-                            color: ColorsApp.WhiteColor,
-                            fontSize: 14,
-                          ),
-                          defaultTextStyle: TextStyle(
-                            color: ColorsApp.WhiteColor,
-                            fontSize: 14,
-                          ),
-                          rangeHighlightColor: ColorsApp.blueColor.withOpacity(
-                            0.2,
-                          ),
-                          rangeStartDecoration: BoxDecoration(
-                            color: ColorsApp.blueColor,
-                            shape: BoxShape.circle,
-                          ),
-                          rangeEndDecoration: BoxDecoration(
-                            color: ColorsApp.blueColor,
-                            shape: BoxShape.circle,
-                          ),
-                          withinRangeTextStyle: TextStyle(
-                            color: ColorsApp.WhiteColor,
-                          ),
-                          outsideTextStyle: TextStyle(
-                            color: ColorsApp.WhiteColor,
-                          ),
-                          outsideDaysVisible: false,
-                        ),
-
-                        headerStyle: HeaderStyle(
-                          titleCentered: true,
-                          titleTextStyle: TextStyle(
-                            color: ColorsApp.WhiteColor,
-                            fontSize: 16,
-                          ),
-                          formatButtonVisible: false,
-                          leftChevronIcon: Icon(
-                            Icons.chevron_left,
-                            color: ColorsApp.WhiteColor,
-                          ),
-                          rightChevronIcon: Icon(
-                            Icons.chevron_right,
-                            color: ColorsApp.WhiteColor,
-                          ),
-                        ),
-
-                        onRangeSelected: (start, end, focused) {
-                          setState(() {
-                            rangeStart = start;
-                            rangeEnd = end;
-                            focusedDay = focused;
-                          });
-                          setStateModal(() {});
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  SizedBox(
+                  Container(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ColorsApp.blueColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: ColorsApp.darknavyblueColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'My Tasks',
+                              style: TextStyle(
+                                color: ColorsApp.WhiteColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                'View All',
+                                style: TextStyle(color: ColorsApp.blueColor, fontSize: 12),
+                              ),
+                            ),
+                          ],
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 15),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        "Confirm Selection",
-                        style: TextStyle(color: ColorsApp.WhiteColor),
-                      ),
+                        BlocBuilder<DashboardCubit, DashboardStates>(
+                          buildWhen: (previous, current) =>
+                              current is MyProjectsLoadingState ||
+                              current is MyProjectsSuccessState ||
+                              current is MyProjectsErrorState,
+                          builder: (context, state) {
+                            if (state is MyProjectsLoadingState) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            } else if (state is MyProjectsErrorState) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                                  child: Text(
+                                    state.errorMessage,
+                                    style: TextStyle(color: ColorsApp.redColor, fontSize: 12),
+                                  ),
+                                ),
+                              );
+                            }
+      
+                            final projectsList = context.read<DashboardCubit>().myProjectsList;
+      
+                            if (projectsList.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                                  child: Text(
+                                    "No tasks assigned to you",
+                                    style: TextStyle(color: ColorsApp.greyColor, fontSize: 13),
+                                  ),
+                                ),
+                              );
+                            }
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: List.generate(projectsList.length, (index) {
+                                  final project = projectsList[index];
+                                  bool isHigh = project.priority?.toUpperCase() == 'HIGH';
+                                  Color statusColor = isHigh ? ColorsApp.orangeColor : ColorsApp.greenColor;
+                                  double progressValue = (project.projectProgress ?? 0) / 100.0;
+                                  return Padding(
+                                    padding: EdgeInsets.only(right: index == projectsList.length - 1 ? 0 : 10.0),
+                                    child: TaskItem(
+                                      title: project.name ?? 'No Title',
+                                      status: project.priority ?? 'Normal',
+                                      statusColor: statusColor,
+                                      desc: project.description ?? 'No Description provided',
+                                      days: getRemainingDays(project.deadline),
+                                      progress: progressValue,
+                                      progressColor: ColorsApp.blueColor,
+                                    ),
+                                  );
+                                }),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: ColorsApp.darknavyblueColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Recent Requests",
+                              style: TextStyle(
+                                color: ColorsApp.WhiteColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                "View All",
+                                style: TextStyle(color: ColorsApp.blueColor, fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        BlocBuilder<DashboardCubit, DashboardStates>(
+                          buildWhen: (previous, current) => 
+                              current is RecentRequestsLoadingState || 
+                              current is RecentRequestsSuccessState || 
+                              current is RecentRequestsErrorState,
+                          builder: (context, state) {
+                            if (state is RecentRequestsLoadingState) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            } else if (state is RecentRequestsErrorState) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                                  child: Text(
+                                    state.errorMessage,
+                                    style: TextStyle(color: ColorsApp.redColor, fontSize: 12),
+                                  ),
+                                ),
+                              );
+                            }
+                            
+                            final requestsList = context.read<DashboardCubit>().recentRequestsList;
+      
+                            if (requestsList.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                                  child: Text(
+                                    "No recent requests found",
+                                    style: TextStyle(color: ColorsApp.greyColor, fontSize: 13),
+                                  ),
+                                ),
+                              );
+                            }
+      
+                            return ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: requestsList.length,
+                              separatorBuilder: (context, index) => const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final request = requestsList[index];
+                                
+                                return RequestItem(
+                                  bgColor: ColorsApp.greyColor.withOpacity(0.1), 
+                                  statusColor: getStatusColor(request.status ?? 'Pending'),
+                                  status: request.status ?? 'Pending',
+                                  date: request.createdAt != null 
+                                      ? "${request.createdAt!.year}-${request.createdAt!.month.toString().padLeft(2, '0')}-${request.createdAt!.day.toString().padLeft(2, '0')}" 
+                                      : 'No Date',
+                                  title: request.type ?? 'Unknown Request',
+                                  image: Image.asset(getRequestImage(request.type ?? '')),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MainLayout(
-      title: 'Dashboard',
-      child: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Hello!", style: TextStyle(color: ColorsApp.greyColor)),
-                SizedBox(height: 10),
-                Text(
-                  'Jones Hawkins',
-                  style: TextStyle(
-                    color: ColorsApp.WhiteColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 25,
-                  ),
-                ),
-                SizedBox(height: 10),
-                GestureDetector(
-                  onTap: showCalendar,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: ColorsApp.greyColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.calendar_month,
-                          size: 18,
-                          color: ColorsApp.WhiteColor,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          rangeStart == null
-                              ? "Select Date Range"
-                              : rangeEnd == null
-                              ? formatMonthYear(rangeStart!)
-                              : "${formatMonthYear(rangeStart!)} - ${formatMonthYear(rangeEnd!)}",
-                          style: TextStyle(color: ColorsApp.WhiteColor),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 25),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isSmall = constraints.maxWidth < 360;
-                    return GridView.count(
-                      shrinkWrap: true,
-                      crossAxisCount: isSmall ? 1 : 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: isSmall ? 1.6 : 1.3,
-                      physics: NeverScrollableScrollPhysics(),
-                      children: [
-                        itemCard(
-                          "Today's Status",
-                          "On Time",
-                          "Checked in at 09:02 AM",
-                          ColorsApp.blueColor,
-                          Image.asset('assets/images/time.png'),
-                        ),
-                        itemCard(
-                          "Leave Balance",
-                          "12 Days",
-                          "Annual Leave Quota",
-                          ColorsApp.purpleColor,
-                          Image.asset("assets/images/umberella.png"),
-                        ),
-                        itemCard(
-                          "Active Tasks",
-                          "05",
-                          "High Priority",
-                          ColorsApp.orangeColor,
-                          Image.asset('assets/images/report.png'),
-                        ),
-                        itemCard(
-                          "Pending Requests",
-                          "02",
-                          "Waiting approval",
-                          ColorsApp.pinkColor,
-                          Image.asset('assets/images/request.png'),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                SizedBox(height: 25),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: ColorsApp.darknavyblueColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Weekly Attendance',
-                        style: TextStyle(
-                          color: ColorsApp.WhiteColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        "Check-in / Check-out Overview",
-                        style: TextStyle(
-                          color: ColorsApp.greyColor,
-                          fontSize: 12,
-                        ),
-                      ),
-                      SizedBox(height: 14),
-                      SizedBox(
-                        height: 220,
-                        child: Padding(
-                          padding: EdgeInsets.all(8),
-                          child: BarChart(
-                            BarChartData(
-                              maxY: 10,
-                              barTouchData: BarTouchData(enabled: false),
-                              gridData: FlGridData(show: false),
-                              borderData: FlBorderData(show: false),
-                              titlesData: FlTitlesData(
-                                topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 28,
-                                    interval: 2,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text(
-                                        '${value.toInt()}h',
-                                        style: TextStyle(
-                                          color: ColorsApp.greyColor,
-                                          fontSize: 11,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      const days = [
-                                        'Mon',
-                                        'Tue',
-                                        'Wed',
-                                        'Thu',
-                                        'Fri',
-                                      ];
-                                      final index = value.toInt();
-                                      if (index < 0 || index >= days.length) {
-                                        return const SizedBox.shrink();
-                                      }
-                                      return Text(
-                                        days[index],
-                                        style: TextStyle(
-                                          color: ColorsApp.greyColor,
-                                          fontSize: 11,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                              barGroups: List.generate(weeklyHours.length, (
-                                index,
-                              ) {
-                                return BarChartGroupData(
-                                  x: index,
-                                  barRods: [
-                                    BarChartRodData(
-                                      toY: weeklyHours[index],
-                                      width: 16,
-                                      borderRadius: BorderRadius.circular(6),
-                                      color: ColorsApp.blueColor,
-                                    ),
-                                  ],
-                                );
-                              }),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 25),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: ColorsApp.darknavyblueColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'My Tasks',
-                            style: TextStyle(
-                              color: ColorsApp.WhiteColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              'View All',
-                              style: TextStyle(
-                                color: ColorsApp.blueColor,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ), //My Tasks screen
-                        ],
-                      ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            buildTaskItem(
-                              title: 'Prototyping',
-                              status: 'HIGH',
-                              statusColor: ColorsApp.orangeColor,
-                              desc:
-                                  'Create wireframes for mobile app dashboard redesign.',
-                              days: '2 days left',
-                              progress: 0.8,
-                              progressColor: ColorsApp.blueColor,
-                            ),
-                            SizedBox(width: 10),
-                            buildTaskItem(
-                              title: 'Asset Export',
-                              status: 'Normal',
-                              statusColor: ColorsApp.greenColor,
-                              desc:
-                                  'Prepare assets for development handoff meeting.',
-                              days: '5 days left',
-                              progress: 0.3,
-                              progressColor: ColorsApp.purpleColor,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 25),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: ColorsApp.darknavyblueColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Recent Requests",
-                            style: TextStyle(
-                              color: ColorsApp.WhiteColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              "View All",
-                              style: TextStyle(
-                                color: ColorsApp.blueColor,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      RequestItem(
-                        bgColor: ColorsApp.orangeColor,
-                        statusColor: ColorsApp.yellowColor,
-                        status: "Pending",
-                        date: "Oct 24, 2025",
-                        title: "Sick Leave",
-                        image: Image.asset("assets/images/sick.png"),
-                      ),
-                      SizedBox(height: 16),
-                      RequestItem(
-                        bgColor: ColorsApp.blueColor,
-                        statusColor: ColorsApp.greenColor,
-                        status: 'Approved',
-                        date: 'Oct 20, 2025',
-                        title: 'Wi-Fi Request',
-                        image: Image.asset("assets/images/Icon.png"),
-                      ),
-                      SizedBox(height: 16),
-                      RequestItem(
-                        bgColor: ColorsApp.purpleColor,
-                        statusColor: ColorsApp.redColor,
-                        status: 'Rejected',
-                        date: 'Oct 15, 2025',
-                        title: 'New Equipment',
-                        image: Image.asset("assets/images/equipment2.png"),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ),
           ),
         ),
       ),
+     floatingActionButton: FloatingActionButton(
+  backgroundColor: ColorsApp.darknavyblueColor, 
+  shape: const CircleBorder(
+  ),
+  elevation: 6, 
+  onPressed: () {
+    Navigator.pushNamed(context, Strings.chatbot);
+  },
+  child: SizedBox( 
+    width: double.infinity,
+    height: double.infinity,
+    child: Image.asset(
+      'assets/images/staffly.png', 
+      fit: BoxFit.cover,
+    ),
+  ),
+),
     );
   }
 }

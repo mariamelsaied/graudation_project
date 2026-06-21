@@ -29,18 +29,19 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cupertino_icons: ^1.0.8
+  dio: ^5.9.2
+  file_picker: ^8.0.3
   fl_chart: ^1.1.0
-  table_calendar: ^3.0.9
   flutter:
     sdk: flutter
+  flutter_bloc: ^9.1.1
+  flutter_secure_storage: ^10.0.0
+  month_picker_dialog: ^6.7.2
+  socket_io_client: ^3.1.5
+  table_calendar: ^3.0.9
+  url_launcher: ^6.3.2
 
 dev_dependencies:
-
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter

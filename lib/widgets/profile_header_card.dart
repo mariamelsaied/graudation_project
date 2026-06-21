@@ -44,7 +44,7 @@ class ProfileHeaderCard extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Image.asset(
-                          'images/profile.png',
+                          'assets/images/profile.png',
                           width: 100,
                           height: 100,
                           fit: BoxFit.cover,
@@ -85,7 +85,7 @@ class ProfileHeaderCard extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
         ],
       ),
     );
