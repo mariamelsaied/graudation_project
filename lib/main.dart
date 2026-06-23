@@ -13,6 +13,9 @@ import 'package:graduation_app/cubit/dashboard_cubit.dart';
 import 'package:graduation_app/cubit/chatbot_cubit.dart';
 import 'package:graduation_app/cubit/task_cubit.dart'; 
 import 'package:graduation_app/cubit/profile_cubit.dart'; 
+// 1. استيراد الـ Cubit الجديد هنا (عدلي المسار حسب مكان الملف عندك)
+import 'package:graduation_app/cubit/notification_cubit.dart'; 
+
 import 'package:graduation_app/presentation/features/AuthWrapper.dart';
 import 'package:graduation_app/presentation/features/My_Task_Screen.dart';
 import 'package:graduation_app/presentation/features/attendance_page.dart';
@@ -20,6 +23,7 @@ import 'package:graduation_app/presentation/features/chatbot_screen.dart';
 import 'package:graduation_app/presentation/features/general_setting_screen.dart';
 import 'package:graduation_app/presentation/features/help_support_screen.dart';
 import 'package:graduation_app/presentation/features/legal_info_screen.dart';
+import 'package:graduation_app/presentation/features/notification_screen.dart';
 import 'package:graduation_app/presentation/features/performance_screen.dart';
 import 'package:graduation_app/presentation/features/setting_screen.dart';
 import 'package:graduation_app/presentation/features/login.dart';
@@ -30,6 +34,8 @@ import 'package:graduation_app/presentation/features/payroll_screen.dart';
 import 'package:graduation_app/presentation/features/my_leaves.dart';
 import 'package:graduation_app/presentation/features/profile_page.dart';
 import 'package:graduation_app/presentation/features/splash_screen.dart';
+// لو هتحطي الـ NotificationScreen في الـ Routes استدعيها هنا:
+// import 'package:graduation_app/presentation/features/notification_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +80,10 @@ class MyApp extends StatelessWidget {
         BlocProvider<ProfileCubit>(
           create: (context) => ProfileCubit(),
         ),
+        // 2. إضافة الـ NotificationCubit هنا لتوفيره للتطبيق بالكامل
+        BlocProvider<NotificationCubit>(
+          create: (context) => NotificationCubit()..getNotifications(), // هينادي الـ API تلقائياً أول ما الأب يفتح
+        ),
       ],
       child: MaterialApp(
         title: 'HRMS Graduation Project',
@@ -100,6 +110,8 @@ class MyApp extends StatelessWidget {
           Strings.performance: (context) => const EmployeePerformanceScreen(),
           Strings.chatbot: (context) => const ChatbotScreen(),
           Strings.tasks: (context) => const MyTaskScreen(),
+          // // اختياري: لو حابة تضيفي صفحة الإشعارات في الـ Routes وضعي اسم الاسترينج بتاعها هنا
+          Strings.notification: (context) => const NotificationScreen(),
         },
       ),
     );

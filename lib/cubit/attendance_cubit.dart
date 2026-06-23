@@ -10,7 +10,6 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
   final SecureStorage _storage = SecureStorage();
   
-
   AttendanceStats? currentStats; 
   SixMonthsData? currentSixMonthsData; 
   List<AttendanceRecord>? attendanceLogs;
@@ -19,7 +18,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   static AttendanceCubit get(context) => BlocProvider.of(context);
 
   void getMonthlyStats({required int month, required int year}) async {
-    if (currentStats == null) emit(AttendanceLoadingState());
+    // نطلق حالة الـ Loading دائماً عند طلب شهر جديد لتحديث الكروت في الـ UI
+    emit(AttendanceLoadingState());
 
     final String? token = await _storage.getToken();
     try {
@@ -32,6 +32,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       if (response.statusCode == 200 && response.data['status'] == 'success') {
         final attendanceResponse = AttendanceResponse.fromJson(response.data);
         currentStats = attendanceResponse.data;
+        
         emit(AttendanceSuccessState(
           stats: currentStats, 
           sixMonthsData: currentSixMonthsData,
@@ -43,7 +44,6 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       emit(AttendanceErrorState(e.toString()));
     }
   }
-
 
   void getSixMonthsStats({required int month, required int year}) async {
     final String? token = await _storage.getToken();
@@ -57,6 +57,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       if (response.statusCode == 200 && response.data['status'] == 'success') {
         final res = SixMonthsAttendanceResponse.fromJson(response.data);
         currentSixMonthsData = res.data;
+        
         emit(AttendanceSuccessState(
           stats: currentStats, 
           sixMonthsData: currentSixMonthsData,
@@ -69,7 +70,6 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     }
   }
 
- 
   Future<void> getAttendanceLogs({int page = 1, int limit = 10}) async {
     final String? token = await _storage.getToken();
     try {

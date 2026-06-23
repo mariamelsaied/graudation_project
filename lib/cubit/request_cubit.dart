@@ -14,7 +14,6 @@ class RequestCubit extends Cubit<RequestState> {
   RequestStatsModel? monthlyStats;
   List<RequestModel> requests = []; 
 
-
   Future<void> createRequest({
     required String type,
     required String title,
@@ -200,6 +199,7 @@ class RequestCubit extends Cubit<RequestState> {
 
         emit(DeleteRequestSuccessState());
         emit(GetRequestsSuccessState(List.from(requests))); 
+      } else {
         emit(DeleteRequestErrorState("Failed to delete request"));
       }
     } on DioException catch (e) {
@@ -218,21 +218,22 @@ class RequestCubit extends Cubit<RequestState> {
     }
   }
 
-  Future<void> getMonthlyStats() async {
+  // 🛠️ تحديث جلب الإحصائيات لتقبل الـ month والـ year ديناميكياً بناءً على التقويم المختار
+  Future<void> getMonthlyStats({int? month, int? year}) async {
     emit(GetRequestStatsLoadingState());
 
     final String? token = await _storage.getToken();
     
     final now = DateTime.now();
-    final int currentMonth = now.month;
-    final int currentYear = now.year;
+    final int targetMonth = month ?? now.month;
+    final int targetYear = year ?? now.year;
 
     try {
       final response = await DioHelper.dio.get(
         '/api/requests/monthly-stats/me',
         queryParameters: {
-          'month': currentMonth,
-          'year': currentYear,
+          'month': targetMonth,
+          'year': targetYear,
         },
         options: Options(headers: {
           if (token != null) 'Authorization': 'Bearer $token',

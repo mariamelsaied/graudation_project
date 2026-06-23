@@ -68,3 +68,17 @@ class PaginationLeave {
     );
   }
 }
+
+// class HrAdminModel {
+//   String? sId;
+//   String? firstName;
+//   String? lastName;
+
+//   HrAdminModel({this.sId, this.firstName, this.lastName});
+
+//   HrAdminModel.fromJson(Map<String, dynamic> json) {
+//     sId = json['_id'];
+//     firstName = json['firstName'];
+//     lastName = json['lastName'];
+//   }
+// }

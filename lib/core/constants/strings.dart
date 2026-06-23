@@ -19,6 +19,7 @@ class Strings {
   static const String payroll ='/payroll';
   static const String attendance ='/attendance';
   static const String performance ='/performance';
+  static const String notification='/notification';
   static const String chatbot ='/chatbot';
   static const String baseUrl = "https://grad-project-hrms-production-7.up.railway.app";
 }

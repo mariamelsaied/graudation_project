@@ -69,7 +69,7 @@ class TaskItem extends StatelessWidget {
           Text(
             desc,
             style:  TextStyle(color: ColorsApp.greyColor, fontSize: 11),
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 15),

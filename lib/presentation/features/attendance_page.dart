@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graduation_app/cubit/auth_cubit.dart';
 import 'package:graduation_app/cubit/auth_state.dart';
-import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:graduation_app/core/constants/colors_app.dart';
 import 'package:graduation_app/cubit/attendance_cubit.dart';
 import 'package:graduation_app/cubit/attendance_state.dart';
@@ -17,107 +16,150 @@ class AttendancePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
     return BlocProvider(
-      create: (context) => AttendanceCubit()
-        ..getMonthlyStats(month: now.month, year: now.year)
-        ..getSixMonthsStats(month: now.month, year: now.year)
-        ..getAttendanceLogs(page: 1), 
+      create:
+          (context) =>
+              AttendanceCubit()
+                ..getMonthlyStats(month: now.month, year: now.year)
+                ..getSixMonthsStats(month: now.month, year: now.year)
+                ..getAttendanceLogs(page: 1),
       child: const AttendanceScaffold(),
     );
   }
 }
 
-class AttendanceScaffold extends StatelessWidget {
+class AttendanceScaffold extends StatefulWidget {
   const AttendanceScaffold({super.key});
 
   @override
+  State<AttendanceScaffold> createState() => _AttendanceScaffoldState();
+}
+
+class _AttendanceScaffoldState extends State<AttendanceScaffold> {
+  DateTime _selectedDate = DateTime.now();
+
+  final List<String> _shortMonthsNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: ColorsApp.blueColor,
+              onPrimary: Colors.white,
+              surface: ColorsApp.secondaryBlueColor,
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+
+      if (mounted) {
+        // استدعاء جلب البيانات للشهر والسنة المحددين معاً لتحديث الكروت والـ Chart فوراً
+        AttendanceCubit.get(
+          context,
+        ).getMonthlyStats(month: _selectedDate.month, year: _selectedDate.year);
+        AttendanceCubit.get(context).getSixMonthsStats(
+          month: _selectedDate.month,
+          year: _selectedDate.year,
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    String formattedDate =
+        "${_selectedDate.day} ${_shortMonthsNames[_selectedDate.month - 1]} ${_selectedDate.year}";
+
     return Scaffold(
       backgroundColor: ColorsApp.darknavyblueColor,
       drawer: const SideMenu(currentPage: "Attendance"),
       appBar: AppBar(
-          backgroundColor: ColorsApp.darknavyblueColor,
-          elevation: 0,
-          centerTitle: true,
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu, color: ColorsApp.WhiteColor),
-              onPressed: () => Scaffold.of(context).openDrawer(),
+        backgroundColor: ColorsApp.darknavyblueColor,
+        elevation: 0,
+        centerTitle: true,
+        leading: Builder(
+          builder:
+              (context) => IconButton(
+                icon: Icon(Icons.menu, color: ColorsApp.WhiteColor),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+        ),
+        title: Text(
+          "My Attendance",
+          style: TextStyle(
+            color: ColorsApp.WhiteColor,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+            child: Badge(
+              isLabelVisible: true,
+              backgroundColor: ColorsApp.redColor,
+              smallSize: 9,
+              alignment: AlignmentDirectional(0.5, -0.5),
+              child: IconButton(
+                icon: Icon(
+                  Icons.notifications_none,
+                  color: ColorsApp.WhiteColor,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/notification');
+                },
+              ),
             ),
           ),
-          title: Text(
-            "Attendance",
-            style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.notifications_none, color: ColorsApp.WhiteColor),
-              onPressed: () {},
-            ),
-            BlocBuilder<LoginCubit, AuthState>(
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+            child: BlocBuilder<LoginCubit, AuthState>(
               builder: (context, state) {
-                String? userImageUrl;
-                String userName = "Employee";
+                String? avatarUrl;
                 if (state is AuthSuccess) {
-                  userImageUrl = state.loginResponse.data?.user?.general?.avatar;
-                  userName = state.loginResponse.data?.user?.general?.firstName ?? "Employee";
-                  debugPrint("✅ تم العثور على حالة AuthSuccess ورابط الصورة هو: $userImageUrl");
-                } else {
-                  debugPrint("⚠️ الحالة الحالية للـ LoginCubit هي: ${state.runtimeType} وليست AuthSuccess!");
+                  avatarUrl = state.loginResponse.data?.user?.general?.avatar;
                 }
 
-                final String shortName = userName.isNotEmpty 
-                    ? userName.trim().substring(0, 1).toUpperCase() 
-                    : "E";
-
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12.0, top: 8.0, bottom: 8.0), // إعطاء مساحة مريحة على اليمين حافة الشاشة
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: ColorsApp.blueColor.withOpacity(0.2),
-                    ),
-                    clipBehavior: Clip.antiAlias, 
-                    child: (userImageUrl != null && userImageUrl.trim().isNotEmpty)
-                        ? Image.network(
-                            userImageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(
-                                child: Text(
-                                  shortName,
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
-                              );
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(
-                                child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                ),
-                              );
-                            },
-                          )
-                        : Center(
-                            child: Text(
-                              shortName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                  ),
+                return CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey[800],
+                  backgroundImage:
+                      (avatarUrl != null && avatarUrl.isNotEmpty)
+                          ? NetworkImage(avatarUrl)
+                          : const AssetImage('assets/images/default_avatar.png')
+                              as ImageProvider,
                 );
               },
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: BlocBuilder<AttendanceCubit, AttendanceState>(
           builder: (context, state) {
@@ -126,52 +168,92 @@ class AttendanceScaffold extends StatelessWidget {
             final logs = cubit.attendanceLogs;
             final pagination = cubit.pagination;
 
-            if (state is AttendanceLoadingState && stats == null) {
-              return const Center(child: CircularProgressIndicator(color: Colors.white));
-            }
-
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  
                   const SizedBox(height: 20),
-                  if (stats != null)
+                  if (state is AttendanceLoadingState)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+                    )
+                  else if (stats != null)
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _buildStatCard(title: "On-time", count: stats.totalOnTimeCount.toString(), color: const Color(0xFF00D1FF)),
+                          _buildStatCard(
+                            title: "On-time",
+                            count: stats.totalOnTimeCount.toString(),
+                            color: const Color(0xFF00D1FF),
+                          ),
                           const SizedBox(width: 12),
-                          _buildStatCard(title: "Late attend", count: stats.totalLateCount.toString(), color: const Color(0xFF00E676)),
+                          _buildStatCard(
+                            title: "Late attend",
+                            count: stats.totalLateCount.toString(),
+                            color: const Color(0xFF00E676),
+                          ),
                           const SizedBox(width: 12),
-                          _buildStatCard(title: "Absent", count: stats.totalAbsentCount.toString(), color: Colors.grey, isStriped: true),
+                          _buildStatCard(
+                            title: "Absent",
+                            count: stats.totalAbsentCount.toString(),
+                            color: Colors.grey,
+                            isStriped: true,
+                          ),
                         ],
                       ),
                     ),
-                  
+
                   const SizedBox(height: 30),
                   Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () async {
-                        final selected = await showMonthPicker(context: context, initialDate: DateTime.now());
-                        if (selected != null && context.mounted) {
-                          context.read<AttendanceCubit>().getSixMonthsStats(month: selected.month, year: selected.year);
-                        }
-                      },
-                      icon: const Icon(Icons.calendar_month, color: Colors.white),
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                      onTap: () => _selectDate(context),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF161D2D),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.05),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              color: ColorsApp.blueColor,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              formattedDate,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 10),
                   const AttendanceChartWidget(),
-                  
+
                   const SizedBox(height: 30),
-                  AttendanceHistoryList(
-                    logs: logs,
-                    pagination: pagination,
-                  ),
+                  AttendanceHistoryList(logs: logs, pagination: pagination),
                   const SizedBox(height: 30),
                 ],
               ),
@@ -182,20 +264,49 @@ class AttendanceScaffold extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard({required String title, required String count, required Color color, bool isStriped = false}) {
+  Widget _buildStatCard({
+    required String title,
+    required String count,
+    required Color color,
+    bool isStriped = false,
+  }) {
     return Container(
-      width: 160, padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: const Color(0xFF161D2D), borderRadius: BorderRadius.circular(20)),
+      width: 160,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161D2D),
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: isStriped ? Colors.transparent : color, border: isStriped ? Border.all(color: Colors.grey) : null)),
-            const SizedBox(width: 8),
-            Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          ]),
+          Row(
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isStriped ? Colors.transparent : color,
+                  border: isStriped ? Border.all(color: Colors.grey) : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          Text(count, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(
+            count,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

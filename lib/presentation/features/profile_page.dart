@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graduation_app/core/constants/colors_app.dart';
 import 'package:graduation_app/cubit/auth_cubit.dart';
 import 'package:graduation_app/cubit/auth_state.dart';
-import 'package:graduation_app/cubit/profile_cubit.dart'; 
+import 'package:graduation_app/cubit/profile_cubit.dart';
 import 'package:graduation_app/cubit/profile_state.dart';
 import 'package:graduation_app/models/user_model.dart';
-import 'package:graduation_app/widgets/side_menu.dart'; 
+import 'package:graduation_app/widgets/side_menu.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -17,128 +17,118 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: ColorsApp.darknavyblueColor,
-      drawer: const SideMenu(currentPage: "My Profile"), 
+      drawer: const SideMenu(currentPage: "My Profile"),
       appBar: AppBar(
         backgroundColor: ColorsApp.darknavyblueColor,
         elevation: 0,
         centerTitle: true,
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: ColorsApp.WhiteColor),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+          builder:
+              (context) => IconButton(
+                icon: Icon(Icons.menu, color: ColorsApp.WhiteColor),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
         ),
         title: Text(
-          "Profile", 
+          "Profile",
           style: TextStyle(
-            color: ColorsApp.WhiteColor, 
-            fontSize: 18, 
+            color: ColorsApp.WhiteColor,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_none, color: ColorsApp.WhiteColor),
-            onPressed: () {},
-          ),
-          BlocBuilder<LoginCubit, AuthState>( 
-            builder: (context, state) {
-              String? userImageUrl;
-              String userName = "Employee";
-              if (state is AuthSuccess) { 
-                userImageUrl = context.read<ProfileCubit>().currentUserModel?.data?.user?.general.avatar;
-                userName = context.read<ProfileCubit>().currentUserModel?.data?.user?.general.firstName ?? "Employee";
-              }
-
-              final String shortName = userName.isNotEmpty 
-                  ? userName.trim().substring(0, 1).toUpperCase() 
-                  : "E";
-
-              return Padding(
-                padding: const EdgeInsets.only(right: 12.0, top: 8.0, bottom: 8.0), 
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: ColorsApp.blueColor.withOpacity(0.2),
-                  ),
-                  clipBehavior: Clip.antiAlias, 
-                  child: (userImageUrl != null && userImageUrl.trim().isNotEmpty)
-                      ? Image.network(
-                          userImageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Center(
-                              child: Text(
-                                shortName,
-                                style: TextStyle(color: ColorsApp.WhiteColor, fontWeight: FontWeight.bold),
-                              ),
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: ColorsApp.WhiteColor),
-                              ),
-                            );
-                          },
-                        )
-                      : Center(
-                          child: Text(
-                            shortName,
-                            style: TextStyle(
-                              color: ColorsApp.WhiteColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0, right: 2.0),
+            child: Badge(
+              isLabelVisible: true,
+              backgroundColor: ColorsApp.redColor,
+              smallSize: 9,
+              alignment: AlignmentDirectional(0.5, -0.5),
+              child: IconButton(
+                icon: Icon(
+                  Icons.notifications_none,
+                  color: ColorsApp.WhiteColor,
                 ),
-              );
-            },
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/notification');
+                },
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+            child: BlocBuilder<LoginCubit, AuthState>(
+              builder: (context, state) {
+                String? avatarUrl;
+                if (state is AuthSuccess) {
+                  avatarUrl = state.loginResponse.data?.user?.general?.avatar;
+                }
+
+                return CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey[800],
+                  backgroundImage:
+                      (avatarUrl != null && avatarUrl.isNotEmpty)
+                          ? NetworkImage(avatarUrl)
+                          : const AssetImage('assets/images/default_avatar.png')
+                              as ImageProvider,
+                );
+              },
+            ),
           ),
         ],
       ),
       body: SafeArea(
         child: BlocBuilder<ProfileCubit, ProfileState>(
           builder: (context, state) {
-            if (state is GetProfileLoadingState && context.read<ProfileCubit>().currentUserModel == null) {
+            if (state is GetProfileLoadingState &&
+                context.read<ProfileCubit>().currentUserModel == null) {
               return Center(
                 child: CircularProgressIndicator(color: ColorsApp.blueColor),
               );
             }
-            if (state is GetProfileErrorState && context.read<ProfileCubit>().currentUserModel == null) {
+            if (state is GetProfileErrorState &&
+                context.read<ProfileCubit>().currentUserModel == null) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, color: ColorsApp.pinkColor, size: 60),
+                      Icon(
+                        Icons.error_outline,
+                        color: ColorsApp.pinkColor,
+                        size: 60,
+                      ),
                       const SizedBox(height: 10),
                       Text(
                         state.errorMessage,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: ColorsApp.greyColor),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: ColorsApp.greyColor,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: ColorsApp.blueColor,
                         ),
-                        onPressed: () => context.read<ProfileCubit>().getUserProfile(),
-                        child: Text('Retry', style: TextStyle(color: ColorsApp.WhiteColor)),
+                        onPressed:
+                            () => context.read<ProfileCubit>().getUserProfile(),
+                        child: Text(
+                          'Retry',
+                          style: TextStyle(color: ColorsApp.WhiteColor),
+                        ),
                       ),
                     ],
                   ),
                 ),
               );
             }
-            final user = context.read<ProfileCubit>().currentUserModel?.data?.user;
+            final user =
+                context.read<ProfileCubit>().currentUserModel?.data?.user;
 
             if (user == null) {
               return Center(
@@ -154,6 +144,7 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildProfileBody(BuildContext context, UserDetails user) {
     final general = user.general;
     final employee = user.employee;
@@ -168,7 +159,9 @@ class ProfileScreen extends StatelessWidget {
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
-              side: BorderSide(color: ColorsApp.secondaryBlueColor.withOpacity(0.5)),
+              side: BorderSide(
+                color: ColorsApp.secondaryBlueColor.withOpacity(0.5),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -177,22 +170,36 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 50,
                     backgroundColor: ColorsApp.blueColor.withOpacity(0.1),
-                    backgroundImage: general.avatar.isNotEmpty 
-                        ? NetworkImage(general.avatar) 
-                        : null,
-                    child: general.avatar.isEmpty
-                        ? Icon(Icons.person, size: 50, color: ColorsApp.blueColor)
-                        : null,
+                    backgroundImage:
+                        general.avatar.isNotEmpty
+                            ? NetworkImage(general.avatar)
+                            : null,
+                    child:
+                        general.avatar.isEmpty
+                            ? Icon(
+                              Icons.person,
+                              size: 50,
+                              color: ColorsApp.blueColor,
+                            )
+                            : null,
                   ),
                   const SizedBox(height: 15),
                   Text(
                     '${general.firstName} ${general.lastName}',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: ColorsApp.WhiteColor),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: ColorsApp.WhiteColor,
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     general.role.toUpperCase(),
-                    style: TextStyle(fontSize: 14, color: ColorsApp.blueColor, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: ColorsApp.blueColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -204,7 +211,9 @@ class ProfileScreen extends StatelessWidget {
           Card(
             color: ColorsApp.secondaryBlueColor,
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               children: [
                 _buildInfoTile(Icons.email, 'Email Address', general.email),
@@ -221,15 +230,37 @@ class ProfileScreen extends StatelessWidget {
             Card(
               color: ColorsApp.secondaryBlueColor,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 children: [
                   _buildInfoTile(Icons.badge, 'Job Title', employee.jobTitle),
-                  _buildInfoTile(Icons.business, 'Department', employee.department),
-                  _buildInfoTile(Icons.place, 'Work Location', employee.workLocation),
-                  _buildInfoTile(Icons.assignment, 'Employment Type', employee.jobType),
-                  _buildInfoTile(Icons.attach_money, 'Base Salary', '\$${employee.baseSalary}'),
-                  _buildInfoTile(Icons.access_time, 'Working Hours', '${employee.workingHours} hrs/week'),
+                  _buildInfoTile(
+                    Icons.business,
+                    'Department',
+                    employee.department,
+                  ),
+                  _buildInfoTile(
+                    Icons.place,
+                    'Work Location',
+                    employee.workLocation,
+                  ),
+                  _buildInfoTile(
+                    Icons.assignment,
+                    'Employment Type',
+                    employee.jobType,
+                  ),
+                  _buildInfoTile(
+                    Icons.attach_money,
+                    'Base Salary',
+                    '\$${employee.baseSalary}',
+                  ),
+                  _buildInfoTile(
+                    Icons.access_time,
+                    'Working Hours',
+                    '${employee.workingHours} hrs/week',
+                  ),
                   _buildInfoTile(Icons.info, 'Status', employee.status),
                 ],
               ),
@@ -239,15 +270,29 @@ class ProfileScreen extends StatelessWidget {
             Card(
               color: ColorsApp.secondaryBlueColor,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildLeaveItem('Annual', employee.leaveBalance.annual, ColorsApp.blueColor),
-                    _buildLeaveItem('Sick', employee.leaveBalance.sick, ColorsApp.pinkColor),
-                    _buildLeaveItem('Casual', employee.leaveBalance.casual, ColorsApp.orangeColor),
+                    _buildLeaveItem(
+                      'Annual',
+                      employee.leaveBalance.annual,
+                      ColorsApp.blueColor,
+                    ),
+                    _buildLeaveItem(
+                      'Sick',
+                      employee.leaveBalance.sick,
+                      ColorsApp.pinkColor,
+                    ),
+                    _buildLeaveItem(
+                      'Casual',
+                      employee.leaveBalance.casual,
+                      ColorsApp.orangeColor,
+                    ),
                   ],
                 ),
               ),
@@ -258,6 +303,7 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildSectionTitle(String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
@@ -267,22 +313,35 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: ColorsApp.blueColor),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: ColorsApp.blueColor,
+            ),
           ),
         ],
       ),
     );
   }
+
   Widget _buildInfoTile(IconData icon, String label, String value) {
     return ListTile(
       leading: Icon(icon, color: ColorsApp.greyColor),
-      title: Text(label, style: TextStyle(fontSize: 12, color: ColorsApp.greyColor)),
+      title: Text(
+        label,
+        style: TextStyle(fontSize: 12, color: ColorsApp.greyColor),
+      ),
       subtitle: Text(
         value.isNotEmpty ? value : 'Not Specified',
-        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: ColorsApp.WhiteColor),
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: ColorsApp.WhiteColor,
+        ),
       ),
     );
   }
+
   Widget _buildLeaveItem(String title, int count, Color color) {
     return Column(
       children: [
@@ -291,13 +350,21 @@ class ProfileScreen extends StatelessWidget {
           backgroundColor: color.withOpacity(0.12),
           child: Text(
             '$count',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           title,
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: ColorsApp.WhiteColor),
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: ColorsApp.WhiteColor,
+          ),
         ),
       ],
     );

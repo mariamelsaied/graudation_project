@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:file_picker/file_picker.dart'; 
+import 'package:file_picker/file_picker.dart';
 import 'package:graduation_app/core/constants/colors_app.dart';
 import 'package:graduation_app/cubit/auth_cubit.dart';
 import 'package:graduation_app/cubit/auth_state.dart';
@@ -41,13 +41,16 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
     setState(() {
       _currentPage = newPage;
     });
-    context.read<TaskStatsCubit>().getMyTasks(filter: _currentFilter, page: newPage);
+    context.read<TaskStatsCubit>().getMyTasks(
+      filter: _currentFilter,
+      page: newPage,
+    );
   }
 
   void _onTabChanged(bool isMyTasks) {
     setState(() {
       isMyTasksSelected = isMyTasks;
-      _currentPage = 1; 
+      _currentPage = 1;
     });
     context.read<TaskStatsCubit>().getMyTasks(filter: _currentFilter, page: 1);
   }
@@ -72,7 +75,7 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
   void _showUploadDocumentDialog(BuildContext context, String taskId) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: ColorsApp.secondaryBlueColor, 
+      backgroundColor: ColorsApp.secondaryBlueColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -84,7 +87,11 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
             children: [
               Text(
                 "Upload Task Document",
-                style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: ColorsApp.WhiteColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -97,28 +104,34 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColorsApp.blueColor,
                   minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 icon: Icon(Icons.upload_file, color: ColorsApp.WhiteColor),
-                label: Text("Select & Submit Document", style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 16)),
+                label: Text(
+                  "Select & Submit Document",
+                  style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 16),
+                ),
                 onPressed: () async {
                   try {
-                    FilePickerResult? result = await FilePicker.platform.pickFiles(
-                      type: FileType.any, 
-                      allowMultiple: false,
-                    );
+                    FilePickerResult? result = await FilePicker.platform
+                        .pickFiles(type: FileType.any, allowMultiple: false);
 
                     if (result != null && result.files.single.path != null) {
                       String filePath = result.files.single.path!;
                       Navigator.pop(bottomContext);
                       context.read<TaskStatsCubit>().updateTaskStatus(
-                            taskId: taskId,
-                            documentPath: filePath,
-                          );
+                        taskId: taskId,
+                        documentPath: filePath,
+                      );
                     }
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error picking file: $e'), backgroundColor: ColorsApp.redColor),
+                      SnackBar(
+                        content: Text('Error picking file: $e'),
+                        backgroundColor: ColorsApp.redColor,
+                      ),
                     );
                   }
                 },
@@ -137,7 +150,7 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
     Color priorityBgColor = ColorsApp.secondaryBlueColor;
 
     if (task.priority.toLowerCase() == 'high') {
-      priorityColor = ColorsApp.pinkColor; 
+      priorityColor = ColorsApp.pinkColor;
       priorityBgColor = ColorsApp.redColor.withOpacity(0.2);
     } else if (task.priority.toLowerCase() == 'medium') {
       priorityColor = ColorsApp.orangeColor;
@@ -153,7 +166,8 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
     if (task.status.toLowerCase() == 'pending') {
       statusColor = ColorsApp.yellowColor;
       statusBgColor = ColorsApp.yellowColor.withOpacity(0.1);
-    } else if (task.status.toLowerCase() == 'on-going' || task.status.toLowerCase() == 'todo') {
+    } else if (task.status.toLowerCase() == 'on-going' ||
+        task.status.toLowerCase() == 'todo') {
       statusColor = ColorsApp.greyColor;
       statusBgColor = ColorsApp.secondaryBlueColor;
       icon = Icons.access_time;
@@ -168,7 +182,8 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
     if (!isCompleted && task.deadline.isNotEmpty) {
       try {
         DateTime parsedDate = DateTime.parse(task.deadline);
-        formattedDate = "${_getMonthName(parsedDate.month)} ${parsedDate.day}, ${parsedDate.year}";
+        formattedDate =
+            "${_getMonthName(parsedDate.month)} ${parsedDate.day}, ${parsedDate.year}";
       } catch (_) {
         formattedDate = 'Today';
       }
@@ -189,7 +204,9 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
           dateOrStatus: formattedDate,
           icon: icon,
           isCompleted: isCompleted,
-          hasAvatar: task.assignedTo.isNotEmpty && task.assignedTo[0].general.avatar.isNotEmpty,
+          hasAvatar:
+              task.assignedTo.isNotEmpty &&
+              task.assignedTo[0].general.avatar.isNotEmpty,
         ),
         Positioned(
           top: 12,
@@ -205,28 +222,37 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
             ),
             child: PopupMenuButton<String>(
               icon: Icon(Icons.more_vert, color: ColorsApp.greyColor, size: 22),
-              enabled: !isTaskCompleted, 
+              enabled: !isTaskCompleted,
               onSelected: (value) {
                 if (value == 'going') {
                   _showUploadDocumentDialog(context, task.id);
                 }
               },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                PopupMenuItem<String>(
-                  value: 'going',
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.check_circle_outline, color: ColorsApp.blueColor, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Submit', 
-                        style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 14, fontWeight: FontWeight.w500),
+              itemBuilder:
+                  (BuildContext context) => <PopupMenuEntry<String>>[
+                    PopupMenuItem<String>(
+                      value: 'going',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            color: ColorsApp.blueColor,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Submit',
+                            style: TextStyle(
+                              color: ColorsApp.WhiteColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  ],
             ),
           ),
         ),
@@ -235,110 +261,113 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
   }
 
   String _getMonthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return months[month - 1];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorsApp.darknavyblueColor, 
+      backgroundColor: ColorsApp.darknavyblueColor,
       drawer: const SideMenu(currentPage: "My Tasks"),
       appBar: AppBar(
-        backgroundColor: ColorsApp.darknavyblueColor, 
+        backgroundColor: ColorsApp.darknavyblueColor,
         elevation: 0,
         centerTitle: true,
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: ColorsApp.WhiteColor),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+          builder:
+              (context) => IconButton(
+                icon: Icon(Icons.menu, color: ColorsApp.WhiteColor),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
         ),
         title: Text(
           "My Tasks",
-          style: TextStyle(color: ColorsApp.WhiteColor, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: ColorsApp.WhiteColor,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_none, color: ColorsApp.WhiteColor),
-            onPressed: () {},
-          ),
-          BlocBuilder<LoginCubit, AuthState>(
-            builder: (context, state) {
-              String? userImageUrl;
-              String userName = "Employee";
-
-              if (state is AuthSuccess) {
-                userImageUrl = state.loginResponse.data?.user?.general?.avatar;
-                userName = state.loginResponse.data?.user?.general?.firstName ?? "Employee";
-              }
-
-              final String shortName = userName.isNotEmpty 
-                  ? userName.trim().substring(0, 1).toUpperCase() 
-                  : "E";
-
-              return Padding(
-                padding: const EdgeInsets.only(right: 12.0, top: 8.0, bottom: 8.0),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: ColorsApp.blueColor.withOpacity(0.2),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: (userImageUrl != null && userImageUrl.trim().isNotEmpty)
-                      ? Image.network(
-                          userImageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Center(
-                              child: Text(
-                                shortName,
-                                style: TextStyle(color: ColorsApp.WhiteColor, fontWeight: FontWeight.bold),
-                              ),
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: ColorsApp.WhiteColor),
-                              ),
-                            );
-                          },
-                        )
-                      : Center(
-                          child: Text(
-                            shortName,
-                            style: TextStyle(
-                              color: ColorsApp.WhiteColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+            child: Badge(
+              isLabelVisible: true,
+              backgroundColor: ColorsApp.redColor,
+              smallSize: 9,
+              alignment: AlignmentDirectional(0.5, -0.5),
+              child: IconButton(
+                icon: Icon(
+                  Icons.notifications_none,
+                  color: ColorsApp.WhiteColor,
                 ),
-              );
-            },
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/notification');
+                },
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+            child: BlocBuilder<LoginCubit, AuthState>(
+              builder: (context, state) {
+                String? avatarUrl;
+                if (state is AuthSuccess) {
+                  avatarUrl = state.loginResponse.data?.user?.general?.avatar;
+                }
+
+                return CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey[800],
+                  backgroundImage:
+                      (avatarUrl != null && avatarUrl.isNotEmpty)
+                          ? NetworkImage(avatarUrl)
+                          : const AssetImage('assets/images/default_avatar.png')
+                              as ImageProvider,
+                );
+              },
+            ),
           ),
         ],
       ),
       body: BlocListener<TaskStatsCubit, TaskStatsState>(
-        listenWhen: (previous, current) =>
-            current is UpdateTaskStatusSuccessState || current is UpdateTaskStatusErrorState,
+        listenWhen:
+            (previous, current) =>
+                current is UpdateTaskStatusSuccessState ||
+                current is UpdateTaskStatusErrorState,
         listener: (context, state) {
           if (state is UpdateTaskStatusSuccessState) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Document uploaded & Task updated to On-going!'), backgroundColor: Colors.green),
+              const SnackBar(
+                content: Text('Document uploaded & Task updated to On-going!'),
+                backgroundColor: Colors.green,
+              ),
             );
             context.read<TaskStatsCubit>().getTaskStats();
-            context.read<TaskStatsCubit>().getMyTasks(filter: _currentFilter, page: _currentPage);
+            context.read<TaskStatsCubit>().getMyTasks(
+              filter: _currentFilter,
+              page: _currentPage,
+            );
           } else if (state is UpdateTaskStatusErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage), backgroundColor: ColorsApp.redColor),
+              SnackBar(
+                content: Text(state.errorMessage),
+                backgroundColor: ColorsApp.redColor,
+              ),
             );
           }
         },
@@ -356,7 +385,9 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: CircularProgressIndicator(color: ColorsApp.blueColor),
+                        child: CircularProgressIndicator(
+                          color: ColorsApp.blueColor,
+                        ),
                       ),
                     );
                   }
@@ -366,18 +397,25 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                     child: Row(
                       children: [
                         SummaryCardWidget(
-                          title: 'Due Today', 
-                          count: stats != null ? stats.dueToday.toString() : '0',
+                          title: 'Due Today',
+                          count:
+                              stats != null ? stats.dueToday.toString() : '0',
                         ),
                         const SizedBox(width: 12),
                         SummaryCardWidget(
-                          title: 'Pending Review', 
-                          count: stats != null ? stats.pendingReview.toString() : '0',
+                          title: 'Pending Review',
+                          count:
+                              stats != null
+                                  ? stats.pendingReview.toString()
+                                  : '0',
                         ),
                         const SizedBox(width: 12),
                         SummaryCardWidget(
-                          title: 'Completed', 
-                          count: stats != null ? stats.completed.total.toString() : '0',
+                          title: 'Completed',
+                          count:
+                              stats != null
+                                  ? stats.completed.total.toString()
+                                  : '0',
                         ),
                       ],
                     ),
@@ -413,7 +451,9 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: CircularProgressIndicator(color: ColorsApp.blueColor),
+                        child: CircularProgressIndicator(
+                          color: ColorsApp.blueColor,
+                        ),
                       ),
                     );
                   }
@@ -423,8 +463,13 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 40),
                       child: Center(
                         child: Text(
-                          _searchText.isEmpty ? 'No tasks found' : 'No tasks found for "$_searchText"',
-                          style: TextStyle(color: ColorsApp.greyColor, fontSize: 16),
+                          _searchText.isEmpty
+                              ? 'No tasks found'
+                              : 'No tasks found for "$_searchText"',
+                          style: TextStyle(
+                            color: ColorsApp.greyColor,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     );
@@ -436,7 +481,8 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemCount: filteredTasks.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        separatorBuilder:
+                            (context, index) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final currentTask = filteredTasks[index];
                           return _mapTaskToWidget(currentTask);
@@ -445,8 +491,12 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                       if (isUpdating)
                         Positioned.fill(
                           child: Container(
-                            color: ColorsApp.blackColor.withOpacity(0.4), 
-                            child: Center(child: CircularProgressIndicator(color: ColorsApp.blueColor)),
+                            color: ColorsApp.blackColor.withOpacity(0.4),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: ColorsApp.blueColor,
+                              ),
+                            ),
                           ),
                         ),
                     ],
@@ -463,12 +513,18 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                       children: [
                         RichText(
                           text: TextSpan(
-                            style: TextStyle(color: ColorsApp.greyColor, fontSize: 14),
+                            style: TextStyle(
+                              color: ColorsApp.greyColor,
+                              fontSize: 14,
+                            ),
                             children: [
                               const TextSpan(text: 'Showing: '),
                               TextSpan(
                                 text: cubit.tasks.length.toString(),
-                                style: TextStyle(color: ColorsApp.blueColor, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: ColorsApp.blueColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const TextSpan(text: ' tasks on this page'),
                             ],
@@ -479,18 +535,31 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.chevron_left, color: ColorsApp.greyColor),
-                              onPressed: _currentPage > 1 ? () => _changePage(_currentPage - 1) : null,
+                              icon: Icon(
+                                Icons.chevron_left,
+                                color: ColorsApp.greyColor,
+                              ),
+                              onPressed:
+                                  _currentPage > 1
+                                      ? () => _changePage(_currentPage - 1)
+                                      : null,
                             ),
                             Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: _getVisiblePages().map((page) {
-                                return _buildPageNumber(page);
-                              }).toList(),
+                              children:
+                                  _getVisiblePages().map((page) {
+                                    return _buildPageNumber(page);
+                                  }).toList(),
                             ),
                             IconButton(
-                              icon: Icon(Icons.chevron_right, color: ColorsApp.greyColor),
-                              onPressed: _currentPage < _totalPages ? () => _changePage(_currentPage + 1) : null,
+                              icon: Icon(
+                                Icons.chevron_right,
+                                color: ColorsApp.greyColor,
+                              ),
+                              onPressed:
+                                  _currentPage < _totalPages
+                                      ? () => _changePage(_currentPage + 1)
+                                      : null,
                             ),
                           ],
                         ),
